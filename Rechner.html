@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zeugnisnotenrechner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f4f4f9;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            display: block;
+            margin: 10px 0 5px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+
+        .note-section {
+            margin-bottom: 20px;
+        }
+
+        .add-note-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 4px;
+        }
+
+        .add-note-btn:hover {
+            background-color: #45a049;
+        }
+
+        .remove-note-btn {
+            background-color: #f44336;
+            color: white;
+            padding: 5px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 4px;
+        }
+
+        .remove-note-btn:hover {
+            background-color: #d32f2f;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Zeugnisnotenrechner</h1>
+
+        <!-- Gesamtgewichtung für schriftlich -->
+        <label for="written-weight">Gesamtgewichtung der schriftlichen Noten (%)</label>
+        <input type="number" id="written-weight" min="1" max="100" placeholder="Gesamtgewichtung für schriftlich" />
+
+        <!-- Gesamtgewichtung für mündlich -->
+        <label for="oral-weight">Gesamtgewichtung der mündlichen Noten (%)</label>
+        <input type="number" id="oral-weight" min="1" max="100" placeholder="Gesamtgewichtung für mündlich" />
+
+        <!-- Eingabebereich für schriftliche Noten -->
+        <div class="note-section" id="written-notes">
+            <h3>Schriftliche Noten</h3>
+            <label for="written-grade-1">Note 1</label>
+            <input type="number" id="written-grade-1" class="written-grade" placeholder="Note eintragen (1-6)" min="1" max="6">
+        </div>
+
+        <!-- Eingabebereich für mündliche Noten -->
+        <div class="note-section" id="oral-notes">
+            <h3>Mündliche Noten</h3>
+            <label for="oral-grade-1">Note 1</label>
+            <input type="number" id="oral-grade-1" class="oral-grade" placeholder="Note eintragen (1-6)" min="1" max="6">
+            <label for="epochal-1">Epochalnote</label>
+            <input type="checkbox" id="epochal-1" class="epochal-note">
+        </div>
+
+        <!-- Button zum Hinzufügen weiterer Noten -->
+        <button class="add-note-btn" id="add-written-note">Weitere schriftliche Note hinzufügen</button>
+        <button class="add-note-btn" id="add-oral-note">Weitere mündliche Note hinzufügen</button>
+
+        <div class="result" id="result">
+            <p>Durchschnittsnote: <span id="average-grade">-</span></p>
+        </div>
+    </div>
+
+    <script>
+        let writtenCount = 1;
+        let oralCount = 1;
+
+        // Funktion zum Hinzufügen einer weiteren schriftlichen Note
+        document.getElementById('add-written-note').addEventListener('click', () => {
+            writtenCount++;
+            const newWrittenNote = document.createElement('div');
+            newWrittenNote.innerHTML = `
+                <label for="written-grade-${writtenCount}">Note ${writtenCount}</label>
+                <input type="number" id="written-grade-${writtenCount}" class="written-grade" placeholder="Note eintragen (1-6)" min="1" max="6">
+            `;
+            document.getElementById('written-notes').appendChild(newWrittenNote);
+        });
+
+        // Funktion zum Hinzufügen einer weiteren mündlichen Note
+        document.getElementById('add-oral-note').addEventListener('click', () => {
+            oralCount++;
+            const newOralNote = document.createElement('div');
+            newOralNote.innerHTML = `
+                <label for="oral-grade-${oralCount}">Note ${oralCount}</label>
+                <input type="number" id="oral-grade-${oralCount}" class="oral-grade" placeholder="Note eintragen (1-6)" min="1" max="6">
+                <label for="epochal-${oralCount}">Epochalnote</label>
+                <input type="checkbox" id="epochal-${oralCount}" class="epochal-note">
+            `;
+            document.getElementById('oral-notes').appendChild(newOralNote);
+        });
+
+        // Funktion zur Berechnung des Durchschnitts
+        function calculateAverage() {
+            let totalWritten = 0;
+            let totalOral = 0;
+
+            // Gesamtgewichtungen aus den Eingabefeldern
+            const writtenWeight = parseFloat(document.getElementById('written-weight').value) || 0;
+            const oralWeight = parseFloat(document.getElementById('oral-weight').value) || 0;
+
+            // Berechnung für schriftliche Noten
+            for (let i = 1; i <= writtenCount; i++) {
+                const grade = parseFloat(document.getElementById(`written-grade-${i}`)?.value);
+                if (grade) {
+                    totalWritten += grade;
+                }
+            }
+
+            // Berechnung für mündliche Noten
+            for (let i = 1; i <= oralCount; i++) {
+                const grade = parseFloat(document.getElementById(`oral-grade-${i}`)?.value);
+                const isEpochal = document.getElementById(`epochal-${i}`).checked;
+                if (grade) {
+                    // Wenn es eine Epochalnote ist, wird die Note doppelt gewichtet
+                    totalOral += isEpochal ? (grade * 2) : grade;
+                }
+            }
+
+            const writtenAverage = totalWritten / writtenCount;
+            const oralAverage = totalOral / oralCount;
+
+            // Gesamtberechnung der Note unter Berücksichtigung der Gewichtung
+            const weightedGrade = ((writtenAverage * writtenWeight + oralAverage * oralWeight) /
+                (writtenWeight + oralWeight)).toFixed(2);
+
+            document.getElementById('average-grade').textContent = weightedGrade;
+        }
+
+        // Event-Listener für Eingaben, um Durchschnitt sofort zu berechnen
+        document.addEventListener('input', calculateAverage);
+    </script>
+
+</body>
+</html>
